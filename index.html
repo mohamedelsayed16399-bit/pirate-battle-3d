@@ -14,15 +14,17 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 .scr h1{font-size:44px;margin:0;color:#fde68a;text-shadow:0 0 24px #0ea5e9}.scr p{margin:0;color:#cbd5e1;max-width:330px;line-height:1.7}
 .big{padding:14px 40px;font-size:22px;font-weight:800;border-radius:16px;border:0;background:linear-gradient(#fbbf24,#d97706);color:#2b1300}
 #bar{width:220px;height:8px;background:#fff2;border-radius:5px;overflow:hidden}#bar i{display:block;height:100%;width:0;background:#fbbf24}
-.cards{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.card{width:30%;min-width:100px;padding:14px 6px;border-radius:14px;background:#12384a;border:2px solid #fbbf24;font-size:15px;color:#fff}
+.cards{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.card{width:30%;min-width:100px;padding:14px 6px;border-radius:14px;background:#12384a;border:2px solid #fbbf24;font-size:15px;color:#fff}#pauseBtn{position:fixed;top:8px;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;border:2px solid #fff6;background:#0009;color:#fff;font-size:18px;display:none;z-index:6}.scard{width:44%;min-width:150px;line-height:1.9;padding:10px 6px}.scard.off{border-color:#334155;opacity:.75}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hud"><div id="hpw"><div id="hpb"><i></i></div><div id="hpt" style="font-size:13px;margin-top:2px">120 / 120</div></div><div style="text-align:left"><div id="wv">الموجة 1</div><div id="sc">0 نقطة</div></div></div>
-<div id="banner"></div><div id="joy"><div id="knob"></div></div>
+<div id="banner"></div><button id="pauseBtn">⏸</button><div id="joy"><div id="knob"></div></div>
 <div class="ab" id="b1">وابل<br>المدافع<div class="cd"></div></div><div class="ab" id="b2">تسارع<div class="cd"></div></div>
-<div class="scr" id="menu"><h1>معركة القراصنة</h1><p>أنت قبطان سفينة قراصنة. المدافع تطلق تلقائياً على أقرب عدو. أغرق الأسطول، اختر تطويراتك، وواجه السفينة الشبح!</p><div id="bar"><i></i></div><button class="big" id="go" disabled>جاري التحميل...</button><p style="font-size:13px">اسحب الدائرة لتوجيه السفينة</p></div>
+<div class="scr" id="menu"><h1>معركة القراصنة</h1><p>أنت قبطان سفينة قراصنة. المدافع تطلق تلقائياً على أقرب عدو. أغرق الأسطول، اختر تطويراتك، وواجه السفينة الشبح!</p><p id="recs" style="font-size:14px;color:#fde68a;line-height:1.8;margin:0"></p><div id="bar"><i></i></div><button class="big" id="go" disabled>جاري التحميل...</button><button class="big" id="shopBtn" style="background:linear-gradient(#64748b,#475569);color:#fff">⚓ الترسانة</button><p style="font-size:13px">اسحب الدائرة لتوجيه السفينة</p></div>
+<div class="scr" id="pause" style="display:none"><h1>⏸ إيقاف مؤقت</h1><p id="ps"></p><button class="big" id="resume">استئناف</button><button class="big" id="restart" style="background:linear-gradient(#64748b,#475569);color:#fff">إعادة البدء</button><button class="big" id="tomenu" style="background:linear-gradient(#7f1d1d,#991b1b);color:#fff">القائمة الرئيسية</button></div>
+<div class="scr" id="shop" style="display:none"><h1 style="font-size:32px">⚓ الترسانة</h1><p id="shopGold" style="color:#fde68a;font-weight:800;font-size:18px;margin:0"></p><p style="font-size:13px">تطويرات دائمة بتفضل معاك في كل رحلة. الذهب من السفن الغرقانة.</p><div class="cards" id="shopCards" style="max-width:560px"></div><button class="big" id="shopBack" style="background:linear-gradient(#64748b,#475569);color:#fff">رجوع</button></div>
 <div class="scr" id="up" style="display:none"><h1 style="font-size:32px">اختر تطويراً</h1><div class="cards" id="cards"></div></div>
-<div class="scr" id="over" style="display:none"><h1 id="ot">غرقت السفينة</h1><p id="os"></p><button class="big" id="again">العب مرة أخرى</button></div>
+<div class="scr" id="over" style="display:none"><h1 id="ot">غرقت السفينة</h1><p id="os"></p><p id="os2" style="color:#fde68a;line-height:1.8"></p><button class="big" id="again">العب مرة أخرى</button><button class="big" id="menu2" style="background:linear-gradient(#64748b,#475569);color:#fff">القائمة الرئيسية</button></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -52,7 +54,25 @@ function build(){
  player=mk('me',6.5,FACE.me);scene.add(player);
 }
 const TY={small:{len:4.2,hp:22,sp:5.2,dm:8,sc:15,sh:0},med:{len:6,hp:50,sp:3.2,dm:10,sc:30,sh:2.6,n:1},large:{len:8,hp:120,sp:2.2,dm:10,sc:70,sh:3,n:3},ghost:{len:11,hp:650,sp:2.6,dm:12,sc:500,sh:2,n:5,boss:1}};
-const S={state:'menu',wave:0,score:0,kills:0,hp:120,mhp:120,dmg:12,rate:1,rng:26,spd:7,god:false,fireT:0,heavy:0,boost:0,boostT:0,inv:0,t:0,flash:0,sink:0};
+const S={state:'menu',wave:0,score:0,kills:0,hp:120,mhp:120,dmg:12,rate:1,rng:26,spd:7,god:false,fireT:0,heavy:0,boost:0,boostT:0,inv:0,t:0,flash:0,sink:0,runGold:0,phx:false};
+const SVK='pb_save_v1';
+let SV={gold:0,up:{hull:0,dmg:0,spd:0,rng:0,phx:0},rec:{bestWave:0,bestScore:0,kills:0,runs:0,wins:0}};
+try{const sv0=JSON.parse(localStorage.getItem(SVK));if(sv0){SV.gold=sv0.gold|0;Object.assign(SV.up,sv0.up||{});Object.assign(SV.rec,sv0.rec||{})}}catch(e){}
+function saveSV(){try{localStorage.setItem(SVK,JSON.stringify(SV))}catch(e){}}
+const GOLD={small:5,med:10,large:20,ghost:150};
+const SHOP=[
+ {k:'hull',t:'🛡 بدن مدرع',d:'+25 صحة قصوى لكل مستوى',max:8,cost:l=>80*(l+1)},
+ {k:'dmg',t:'💣 مدافع محسنة',d:'ضرر +12% لكل مستوى',max:8,cost:l=>90*(l+1)},
+ {k:'spd',t:'⛵ أشرعة حرير',d:'سرعة +7% لكل مستوى',max:6,cost:l=>70*(l+1)},
+ {k:'rng',t:'🔭 منظار بعيد',d:'مدى المدافع +8% لكل مستوى',max:5,cost:l=>60*(l+1)},
+ {k:'phx',t:'🧜 نجاة الناجي',d:'نجاة واحدة كل رحلة بنصف الصحة',max:1,cost:l=>900}];
+function endRun(won){SV.gold+=S.runGold||0;SV.rec.kills+=S.kills;SV.rec.runs++;if(won)SV.rec.wins++;if(S.wave>SV.rec.bestWave)SV.rec.bestWave=S.wave;if(S.score>SV.rec.bestScore)SV.rec.bestScore=S.score;const g=S.runGold||0;S.runGold=0;saveSV();return g}
+function overStats(g){$('os2').textContent='🪙 +'+g+' ذهب (رصيدك '+SV.gold+') — أفضل موجة: '+SV.rec.bestWave+' • أفضل نقاط: '+SV.rec.bestScore}
+function refreshMenu(){$('recs').textContent=SV.rec.runs?('🏆 أفضل موجة: '+SV.rec.bestWave+' • أفضل نقاط: '+SV.rec.bestScore+' • انتصارات: '+SV.rec.wins+' • أغرقت '+SV.rec.kills+' سفينة • 🪙 '+SV.gold):'كل سفينة بتغرقها بتديك ذهب يفضل معاك للأبد 🪙'}
+function renderShop(){$('shopGold').textContent='🪙 ذهبك: '+SV.gold;const c=$('shopCards');c.innerHTML='';SHOP.forEach(it=>{const l=SV.up[it.k];const maxed=l>=it.max;const cost=maxed?0:it.cost(l);const b=document.createElement('button');b.className='card scard'+(maxed?' off':'');b.innerHTML='<b>'+it.t+'</b><br><span style="font-size:12px;color:#cbd5e1">'+it.d+'</span><br><span style="font-size:13px;color:#fde68a">مستوى '+l+(it.max>1?'/'+it.max:'')+'</span><br><b style="color:'+(maxed?'#4ade80':SV.gold>=cost?'#fde68a':'#f87171')+'">'+(maxed?'مكتمل ✓':'🪙 '+cost)+'</b>';if(!maxed)b.onclick=()=>{if(SV.gold>=cost){SV.gold-=cost;SV.up[it.k]++;saveSV();renderShop();refreshMenu()}};c.appendChild(b)})}
+function pauseGame(){if(S.state!='play')return;S.state='pause';$('pause').style.display='flex';$('ps').textContent='الموجة '+S.wave+' • '+S.kills+' غرقى • '+S.score+' نقطة • 🪙 '+(S.runGold||0);hideCtl()}
+function resumeGame(){if(S.state!='pause')return;$('pause').style.display='none';S.state='play';showCtl()}
+function toMenu(){$('pause').style.display='none';$('over').style.display='none';$('up').style.display='none';$('shop').style.display='none';$('menu').style.display='flex';S.state='menu';hideCtl();for(const e of enemies)scene.remove(e.m);enemies.length=0;S.queue=null;refreshMenu()}
 let jx=0,jz=0,head=0;
 function banner(t,ms=1500){const b=$('banner');b.textContent=t;b.style.opacity=1;setTimeout(()=>b.style.opacity=0,ms)}
 function spawnWave(){S.wave++;$('wv').textContent='الموجة '+S.wave;const boss=S.wave%5==0;const n=boss?5:3+S.wave*2;const pool=['small'];if(S.wave>=2)pool.push('med');if(S.wave>=3)pool.push('large','med');
@@ -61,21 +81,27 @@ function addEnemy(ty){const d=TY[ty];const m=mk(ty,d.len,FACE[ty]);const a=Math.
 function splash(p,n=8,col=0xffffff,sp=5){for(let i=0;i<n;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(.2,5,4),new THREE.MeshBasicMaterial({color:col}));m.position.copy(p);m.position.y=.5;scene.add(m);const a=Math.random()*6.28;parts.push({m,v:new THREE.Vector3(Math.cos(a)*sp*Math.random(),3+Math.random()*4,Math.sin(a)*sp*Math.random()),l:.8})}}
 const bg=new THREE.SphereGeometry(.45,8,6),bm=new THREE.MeshStandardMaterial({color:0x222222,metalness:.6,roughness:.4}),ebm=new THREE.MeshStandardMaterial({color:0x7a1010,emissive:0x501000,metalness:.5,roughness:.4});
 function ball(from,dir,sp,dm,enemy){const m=new THREE.Mesh(bg,enemy?ebm:bm);m.position.copy(from);m.position.y=1.4;m.castShadow=true;scene.add(m);(enemy?eballs:balls).push({m,v:dir.clone().multiplyScalar(sp),dm,l:enemy?2.6:1.3})}
-function hurtE(e,dm){if(e.dead)return;e.hp-=dm;e.hit=.12;splash(e.m.position,6,0xffd27a,4);if(e.hp<=0){e.dead=.01;S.kills++;S.score+=e.d.sc;splash(e.m.position,16,0xffffff,8)}}
-function hurtP(dm){if(S.inv>0||S.god||S.state!='play')return;S.hp-=dm;S.inv=.4;S.flash=.2;splash(player.position,8,0xff6030,5);if(S.hp<=0){S.hp=0;S.state='over';$('over').style.display='flex';$('ot').textContent='غرقت السفينة';$('os').textContent='وصلت الموجة '+S.wave+' وأغرقت '+S.kills+' سفينة، ونقاطك '+S.score;hideCtl()}}
+function hurtE(e,dm){if(e.dead)return;e.hp-=dm;e.hit=.12;splash(e.m.position,6,0xffd27a,4);if(e.hp<=0){e.dead=.01;S.kills++;S.score+=e.d.sc;S.runGold=(S.runGold||0)+(GOLD[e.ty]||5);splash(e.m.position,16,0xffffff,8)}}
+function hurtP(dm){if(S.inv>0||S.god||S.state!='play')return;S.hp-=dm;S.inv=.4;S.flash=.2;splash(player.position,8,0xff6030,5);if(S.hp<=0){if(S.phx){S.hp=Math.ceil(S.mhp/2);S.phx=false;S.inv=1.2;banner('🧜 نجات من الغرق!',2000);splash(player.position,24,0x7fe0ff,7);return}S.hp=0;const g=endRun(false);S.state='over';$('over').style.display='flex';$('ot').textContent='غرقت السفينة';$('os').textContent='وصلت الموجة '+S.wave+' وأغرقت '+S.kills+' سفينة، ونقاطك '+S.score;overStats(g);hideCtl()}}
 function volley(){if(S.state!='play'||S.heavy>0)return;S.heavy=6;for(let i=0;i<12;i++){const a=i/12*Math.PI*2;ball(player.position,new THREE.Vector3(Math.cos(a),0,Math.sin(a)),28,S.dmg*1.6,false)}}
 function boost(){if(S.state=='play'&&S.boost<=0){S.boostT=1.4;S.boost=5;S.inv=Math.max(S.inv,.3)}}
 function levelUp(){S.state='up';$('up').style.display='flex';hideCtl();const ALL=[['⚔ ضرر المدافع +25%',()=>S.dmg*=1.25],['❤ صحة +30 وإصلاح كامل',()=>{S.mhp+=30;S.hp=S.mhp}],['⛵ سرعة +12%',()=>S.spd*=1.12],['⚡ سرعة الإطلاق +20%',()=>S.rate*=1.2],['◎ مدى المدافع +15%',()=>S.rng*=1.15]];
  const pick=ALL.sort(()=>Math.random()-.5).slice(0,3);const c=$('cards');c.innerHTML='';pick.forEach(([t,f])=>{const b=document.createElement('button');b.className='card';b.textContent=t;b.onclick=()=>{f();S.hp=Math.min(S.mhp,S.hp+S.mhp*.25);$('up').style.display='none';S.state='play';showCtl();spawnWave()};c.appendChild(b)})}
-function showCtl(){$('joy').style.display='block';$('b1').style.display='flex';$('b2').style.display='flex'}function hideCtl(){$('joy').style.display='none';$('b1').style.display='none';$('b2').style.display='none'}
-function start(){for(const e of enemies)scene.remove(e.m);enemies.length=0;for(const b of balls.concat(eballs))scene.remove(b.m);balls.length=0;eballs.length=0;Object.assign(S,{wave:0,score:0,kills:0,hp:120,mhp:120,dmg:12,rate:1,rng:26,spd:7,god:false,fireT:0,heavy:0,boost:0,inv:0});player.position.set(0,0,0);head=0;$('menu').style.display='none';$('over').style.display='none';S.state='play';showCtl();spawnWave()}
+function showCtl(){$('joy').style.display='block';$('b1').style.display='flex';$('b2').style.display='flex';$('pauseBtn').style.display='block'}function hideCtl(){$('joy').style.display='none';$('b1').style.display='none';$('b2').style.display='none';$('pauseBtn').style.display='none'}
+function start(){for(const e of enemies)scene.remove(e.m);enemies.length=0;for(const b of balls.concat(eballs))scene.remove(b.m);balls.length=0;eballs.length=0;const mhp=120+SV.up.hull*25;Object.assign(S,{wave:0,score:0,kills:0,hp:mhp,mhp,dmg:12*Math.pow(1.12,SV.up.dmg),rate:1,rng:26*Math.pow(1.08,SV.up.rng),spd:7*Math.pow(1.07,SV.up.spd),god:false,fireT:0,heavy:0,boost:0,inv:0,runGold:0,phx:SV.up.phx>0});player.position.set(0,0,0);head=0;$('menu').style.display='none';$('over').style.display='none';$('pause').style.display='none';$('shop').style.display='none';S.state='play';showCtl();spawnWave()}
 $('go').onclick=start;$('again').onclick=start;
+$('pauseBtn').onclick=()=>{if(S.state=='play')pauseGame();else if(S.state=='pause')resumeGame()};
+$('resume').onclick=resumeGame;$('restart').onclick=start;$('tomenu').onclick=toMenu;$('menu2').onclick=toMenu;
+$('shopBtn').onclick=()=>{if(S.state!='menu')return;renderShop();$('menu').style.display='none';$('shop').style.display='flex'};
+$('shopBack').onclick=()=>{$('shop').style.display='none';$('menu').style.display='flex';refreshMenu()};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame()});
+refreshMenu();
 let jid=null,jc={x:0,y:0};const joy=$('joy');
 addEventListener('pointerdown',e=>{if(S.state!='play'||e.target.closest('.ab'))return;if(e.clientX<innerWidth*.6&&jid===null){jid=e.pointerId;const r=joy.getBoundingClientRect();jc={x:r.left+65,y:r.top+65}}});
 addEventListener('pointermove',e=>{if(e.pointerId!==jid)return;let dx=e.clientX-jc.x,dy=e.clientY-jc.y;const L=Math.hypot(dx,dy),m=55;if(L>m){dx*=m/L;dy*=m/L}jx=dx/m;jz=dy/m;$('knob').style.transform=`translate(${dx}px,${dy}px)`});
 const rel=e=>{if(e.pointerId===jid){jid=null;jx=jz=0;$('knob').style.transform=''}};addEventListener('pointerup',rel);addEventListener('pointercancel',rel);
 $('b1').addEventListener('pointerdown',()=>volley());$('b2').addEventListener('pointerdown',()=>boost());
-const K={};addEventListener('keydown',e=>{K[e.code]=1;if(e.code=='Space')volley();if(e.code=='ShiftLeft')boost()});addEventListener('keyup',e=>K[e.code]=0);
+const K={};addEventListener('keydown',e=>{K[e.code]=1;if(e.code=='Space')volley();if(e.code=='ShiftLeft')boost();if(e.code=='KeyP'||e.code=='Escape'){if(S.state=='play')pauseGame();else if(S.state=='pause')resumeGame()}});addEventListener('keyup',e=>K[e.code]=0);
 function waterUpd(){const px=player.position.x,pz=player.position.z;water.position.set(Math.round(px/3.43)*3.43,0,Math.round(pz/3.43)*3.43);
  for(let i=0;i<wpos.count;i++){const x=wpos.getX(i)+water.position.x,z=wpos.getZ(i)+water.position.z;wpos.setY(i,Math.sin(x*.35+S.t*1.6)*.18+Math.cos(z*.3+S.t*1.2)*.16)}wpos.needsUpdate=true}
 function update(dt){S.t+=dt;if(!player)return;
@@ -108,7 +134,7 @@ function update(dt){S.t+=dt;if(!player)return;
   if(!rm&&Math.hypot(player.position.x-b.m.position.x,player.position.z-b.m.position.z)<2.2){hurtP(b.dm);rm=true}
   if(rm){scene.remove(b.m);eballs.splice(i,1)}}
  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.l-=dt;p.v.y-=14*dt;p.m.position.addScaledVector(p.v,dt);if(p.l<=0||p.m.position.y<0){scene.remove(p.m);parts.splice(i,1)}}
- if(S.queue&&!S.queue.length&&!enemies.length){S.queue=null;S.score+=S.wave*30;if(S.wave>=10){S.state='over';$('over').style.display='flex';$('ot').textContent='انتصرت! 🏴‍☠️';$('os').textContent='أغرقت الأسطول بالكامل. النقاط: '+S.score;hideCtl()}else{banner('انتصرت في الموجة',1200);setTimeout(()=>{if(S.state=='play')levelUp()},1200)}}
+ if(S.queue&&!S.queue.length&&!enemies.length){S.queue=null;S.score+=S.wave*30;if(S.wave>=10){const g=endRun(true);S.state='over';$('over').style.display='flex';$('ot').textContent='انتصرت! 🏴‍☠️';$('os').textContent='أغرقت الأسطول بالكامل. النقاط: '+S.score;overStats(g);hideCtl()}else{banner('انتصرت في الموجة',1200);setTimeout(()=>{if(S.state=='play')levelUp()},1200)}}
 }
 function hud(){$('hpb').firstChild.style.width=Math.max(0,S.hp/S.mhp*100)+'%';$('hpt').textContent=Math.ceil(S.hp)+' / '+Math.ceil(S.mhp);$('sc').textContent=S.score+' نقطة';
  $('b1').lastChild.style.clipPath=`inset(${Math.max(0,S.heavy)/6*100}% 0 0 0)`;$('b2').lastChild.style.clipPath=`inset(${Math.max(0,S.boost)/5*100}% 0 0 0)`}
@@ -118,5 +144,6 @@ function frame(t){const rdt=(t-last)/1000;const dt=Math.min(.05,rdt);last=t;
  update(dt);if(player){waterUpd();const tx=player.position.x,tz=player.position.z;cam.position.lerp(new THREE.Vector3(tx,40,tz+26),Math.min(1,dt*4));cam.lookAt(tx,0,tz-2);sun.position.set(tx+12,24,tz+10);sun.target.position.set(tx,0,tz)}
  scene.background.setHex(S.flash>0?0xd96a5a:0x8fd3e8);hud();renderer.render(scene,cam);requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
-window.G={s:S,start,step(n,d=.05){for(let i=0;i<n;i++)update(d)},joy(x,z){jx=x;jz=z},god(){S.god=true},volley,boost,jump(w){S.wave=w-1;S.queue=null;for(const e of enemies)scene.remove(e.m);enemies.length=0;spawnWave()},pick(){const b=document.querySelector('.card');if(b)b.click()},info(){return JSON.stringify({st:S.state,w:S.wave,sc:S.score,k:S.kills,hp:Math.round(S.hp),en:enemies.length,q:S.queue&&S.queue.length})}};
+window.G={s:S,start,SV,pauseGame,resumeGame,toMenu,step(n,d=.05){for(let i=0;i<n;i++)update(d)},joy(x,z){jx=x;jz=z},god(){S.god=true},volley,boost,jump(w){S.wave=w-1;S.queue=null;for(const e of enemies)scene.remove(e.m);enemies.length=0;spawnWave()},pick(){const b=document.querySelector('.card');if(b)b.click()},info(){return JSON.stringify({st:S.state,w:S.wave,sc:S.score,k:S.kills,hp:Math.round(S.hp),en:enemies.length,q:S.queue&&S.queue.length})}};
 </script></body></html>
+
